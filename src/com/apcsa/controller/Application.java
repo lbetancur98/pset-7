@@ -53,6 +53,8 @@ public class Application {
                     // first-time users need to change their passwords from the default provided
                 	System.out.println("this is your first time logging in! Please change your password!");
                 	String newPassword = in.next();
+                	password = newPassword;
+                	
                 	System.out.println(newPassword);
                 }
                 
