@@ -30,4 +30,22 @@ public class Utils {
 
         return pwd.toString();
     }
+    
+    /**
+     * Safely reads an integer from the user.
+     * 
+     * @param in the Scanner
+     * @param invalid an invalid (but type-safe) default
+     * @return the value entered by the user or the invalid default
+     */
+    
+    public static int getInt(Scanner in, int invalid) {
+        try {
+            return in.nextInt();                // try to read and return user-provided value
+        } catch (InputMismatchException e) {            
+            return invalid;                     // return default in the even of an type mismatch
+        } finally {
+            in.nextLine();                      // always consume the dangling newline character
+        }
+    }
 }
