@@ -176,7 +176,7 @@ public class PowerSchool {
      * @throws SQLException
      */
 
-    private static Connection getConnection() throws SQLException {
+    public static Connection getConnection() throws SQLException {
         return DriverManager.getConnection(PROTOCOL + DATABASE_URL);
     }
 
@@ -194,6 +194,38 @@ public class PowerSchool {
 
             conn.setAutoCommit(false);
             stmt.setString(1, ts.toString());
+            stmt.setString(2, username);
+
+            if (stmt.executeUpdate() == 1) {
+                conn.commit();
+
+                return 1;
+            } else {
+                conn.rollback();
+
+                return -1;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+
+            return -1;
+        }
+    }
+    
+    /*
+     * Updates the password for the user.
+     *
+     * @param conn the current database connection
+     * @param username the user's username
+     * @param newPassword the new password
+     * @return the number of affected rows
+     */
+    
+    public static int updateUserPassword(Connection conn, String username, String newPassword) {
+        try (PreparedStatement stmt = conn.prepareStatement(QueryUtils.UPDATE_PASSWORD)) {
+
+            conn.setAutoCommit(false);
+            stmt.setString(1, Utils.getHash(newPassword));
             stmt.setString(2, username);
 
             if (stmt.executeUpdate() == 1) {

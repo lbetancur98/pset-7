@@ -1,5 +1,7 @@
 package com.apcsa.controller;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Scanner;
 import com.apcsa.data.PowerSchool;
 import com.apcsa.model.User;
@@ -26,10 +28,12 @@ public class Application {
 
     /**
      * Starts the PowerSchool application.
+     * @throws SQLException 
      */
 
-    public void startup() {
+    public void startup() throws SQLException {
         System.out.println("PowerSchool -- now for students, teachers, and school administrators!");
+        Connection conn = PowerSchool.getConnection();
 
         // continuously prompt for login credentials and attempt to login
 
@@ -55,10 +59,13 @@ public class Application {
                 	String newPassword = in.next();
                 	password = newPassword;
                 	
-                	System.out.println(newPassword);
+                	PowerSchool.updateUserPassword(conn, username, newPassword);
+                	
+                	
+                	
                 }
                 
-                System.out.println("hello!");
+               
 
                 // create and show the user interface
                 //
@@ -102,7 +109,7 @@ public class Application {
      * @param args unused command line argument list
      */
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws SQLException {
         Application app = new Application();
 
         app.startup();

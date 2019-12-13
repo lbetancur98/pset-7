@@ -32,6 +32,15 @@ public class QueryUtils {
         "WHERE username = ?";
     
     /*
+     * Updates the password to any user, to be used in the powerschool file.
+     */
+    
+    public static final String UPDATE_PASSWORD =
+            "UPDATE users " +
+                "SET auth = ? " +
+            "WHERE username = ?";
+    
+    /*
      * Retrieves an administrator associated with a user account.
      */
 
