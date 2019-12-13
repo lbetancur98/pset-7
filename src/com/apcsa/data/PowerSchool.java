@@ -189,7 +189,7 @@ public class PowerSchool {
      * @return the number of affected rows
      */
 
-    private static int updateLastLogin(Connection conn, String username, Timestamp ts) {
+    public static int updateLastLogin(Connection conn, String username, Timestamp ts) {
         try (PreparedStatement stmt = conn.prepareStatement(QueryUtils.UPDATE_LAST_LOGIN_SQL)) {
 
             conn.setAutoCommit(false);

@@ -170,6 +170,9 @@ public class Application {
      */
 
     private void resetPassword() {
+    	
+    	
+    	
         //
         // prompt root user to enter username of user whose password needs to be reset
         //
@@ -179,6 +182,14 @@ public class Application {
         //      call database method to reset password for username
         //      print success message
         //
+    	
+    	System.out.println("Enter the username of the account whose password is to be reset");
+    	String targetUser = in.next();
+    	
+    	PowerSchool.updateUserPassword(conn, targetUser, targetUser);
+    	PowerSchool.updateLastLogin(conn, targetUser, ts);
+    	System.out.println(targetUser);
+    	
     }
     
     /*
