@@ -236,6 +236,14 @@ public class Application {
         //
         // ask root user to confirm intent to logout
         //
+    	
+    	System.out.println("Are you sure you would like to sign out? For yes enter 1 OR for no enter 2");
+    	int yesOrNo = in.nextInt();
+    	System.out.println();
+    	
+    	if(yesOrNo == 1) {
+    		activeUser = null;
+    	}
         // if confirmed...
         //      set activeUser to null
         //
