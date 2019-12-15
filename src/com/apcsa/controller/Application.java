@@ -2,6 +2,7 @@ package com.apcsa.controller;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.Scanner;
 import com.apcsa.data.PowerSchool;
 import com.apcsa.model.User;
@@ -79,7 +80,7 @@ public class Application {
         }
     }
     
-    public void createAndShowUI(){
+    public void createAndShowUI() throws SQLException{
     	System.out.println("\nHello, again, " + activeUser.getFirstName() + "!");
 
         if (activeUser.isRoot()) {
@@ -93,7 +94,7 @@ public class Application {
      * Displays an interface for root users.
      */
 
-    private void showRootUI() {
+    private void showRootUI() throws SQLException {
         while (activeUser != null) {
             switch (getRootMenuSelection()) {
                 case PASSWORD: resetPassword(); break;
@@ -136,7 +137,8 @@ public class Application {
      * @param e the error that initiated the shutdown sequence
      */
     
-    private void shutdown(Exception e) {
+    @SuppressWarnings("unused")
+	private void shutdown(Exception e) {
         if (in != null) {
             in.close();
         }
@@ -169,10 +171,9 @@ public class Application {
      * Allows a root user to reset another user's password.
      */
 
-    private void resetPassword() {
+    private void resetPassword() throws SQLException {
     	
-    	
-    	
+    	Connection conn = PowerSchool.getConnection();    	
         //
         // prompt root user to enter username of user whose password needs to be reset
         //
@@ -186,8 +187,12 @@ public class Application {
     	System.out.println("Enter the username of the account whose password is to be reset");
     	String targetUser = in.next();
     	
+    	Timestamp ts = Timestamp.valueOf("1111-11-11 11:11:11.111");
+    	
     	PowerSchool.updateUserPassword(conn, targetUser, targetUser);
+    	System.out.println("updated password");
     	PowerSchool.updateLastLogin(conn, targetUser, ts);
+    	System.out.println("updated login time");
     	System.out.println(targetUser);
     	
     }
@@ -240,7 +245,12 @@ public class Application {
      */
 
     public boolean isFirstLogin() {
-        return activeUser.getLastLogin().equals("0000-00-00 00:00:00.000");
+    	@SuppressWarnings("unused")
+		boolean firstLogin = false;
+    	if(activeUser.getLastLogin().equals("0000-00-00 00:00:00.000") || activeUser.getLastLogin().equals("1111-11-11 11:11:11.111")) {
+    		firstLogin = true;
+    	}
+        return firstLogin;
     }
 
     /////// MAIN METHOD ///////////////////////////////////////////////////////////////////
