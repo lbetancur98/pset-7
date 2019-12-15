@@ -204,6 +204,23 @@ public class Application {
     private void factoryReset() {
         //
         // ask root user to confirm intent to reset the database
+    	
+    	System.out.println("Are you sure you would like to reset the database? Write 1 for yes OR 2 for no");
+    	int yesOrNo = in.nextInt();
+    	System.out.println(yesOrNo == 1);
+    	
+    	if(yesOrNo == 1) {
+    		System.out.println("we in here");
+           
+    		try {
+                PowerSchool.initialize(false);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+    		
+    		System.out.println();
+    		System.out.println("The powerschool has been successfully reset");
+    	}
         //
         // if confirmed...
         //      call database initialize method with parameter of true
