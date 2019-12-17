@@ -138,7 +138,7 @@ public class Utils {
         double examAvg = -1;
         double examWeight = -1;
         
-        // compute sume of marking period and/or exam grades
+        // compute sum of marking period and/or exam grades
         
         for (int i = 0; i < grades.length; i++) {
             if (grades[i] != null) {
