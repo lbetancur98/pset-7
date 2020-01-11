@@ -89,4 +89,10 @@ public class QueryUtils {
     	    "SELECT DISTINCT grade, course_no, course_grades.student_id \"STUDENT_ID\", course_grades.course_id, first_name, last_name, graduation, students.gpa FROM courses " +
     	        "INNER JOIN course_grades ON courses.course_id = course_grades.course_id " + 
     	        "INNER JOIN students ON students.student_id = course_grades.student_id WHERE course_no = ?";
+    
+    public static String GET_TEACHER_COURSES = 
+            "SELECT * FROM teachers INNER JOIN courses ON teachers.teacher_id = courses.teacher_id WHERE teachers.teacher_id = ?";
+        
+        public static String GET_STUDENT_ENROLLMENT_BY_COURSE_ID = 
+        "SELECT * FROM students LEFT OUTER JOIN course_grades ON students.student_ID = course_grades.student_id INNER JOIN courses ON courses.course_id = course_grades.course_id OUTER LEFT JOIN users ON users.user_id = students.student_id WHERE courses.course_id = ?";
 }
