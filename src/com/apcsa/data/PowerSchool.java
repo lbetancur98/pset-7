@@ -171,6 +171,41 @@ public class PowerSchool {
 
         return user;
     }
+    
+    
+    public static ArrayList<Teacher> getFaculty() {
+        ArrayList<Teacher> faculty = new ArrayList<Teacher>();
+         try (Connection conn = getConnection()) {
+            PreparedStatement stmt = conn.prepareStatement(QueryUtils.GET_FACULTY);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    faculty.add(new Teacher(rs));
+                }
+            }
+         } catch (SQLException e) {
+             shutdown(true);
+         }
+
+         return faculty;
+     }
+    
+    
+    
+    public static ArrayList<Student> getStudents() {
+        ArrayList<Student> students = new ArrayList<Student>();
+        try (Connection conn = getConnection()) {
+            PreparedStatement stmt = conn.prepareStatement(QueryUtils.GET_STUDENTS);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    students.add(new Student(rs));
+                }
+            }
+         } catch (SQLException e) {
+             shutdown(true);
+         }
+
+         return students;
+    }
 
     /*
      * Establishes a connection to the database.
@@ -284,4 +319,35 @@ public class PowerSchool {
             e.printStackTrace();
         }
     }
+    
+
+    public static boolean isResultSetEmpty(ResultSet resultSet) throws SQLException {
+        return !resultSet.first();
+    }
+    
+    private static void resetTimestamp(String username) {
+        
+        try (Connection conn = PowerSchool.getConnection()) {
+            PreparedStatement stmt = conn.prepareStatement("UPDATE users SET last_login = '1111-11-11 11:11:11.111' WHERE username = ?");
+            stmt.setString(1, username);
+            stmt.executeUpdate();
+        }catch (SQLException e){
+            shutdown(true);
+        }
+
+    }
+    
+    
+    public static void shutdown(boolean error) {
+        if (error) {
+            System.out.println("\nA fatal error has occurred. Shutting down...");
+            Application.running = false;
+            return;
+        }
+        System.out.println("\nShutting down...");
+        Application.running = false;
+    }
+    
+    
+    
 }
