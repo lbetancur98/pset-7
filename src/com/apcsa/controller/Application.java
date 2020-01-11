@@ -334,18 +334,7 @@ public class Application {
     	}
 	}
     
-    private void viewCourseGrades() {
-    	
-    }
-    
-    private void viewAssignmentGrades() {
-    	
-    }
-    
-    private void resetUserPassword() {
-    	
-    }
-    
+   
     /*
      * Shuts down the application after encountering an error.
      * 
