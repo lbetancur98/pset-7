@@ -96,7 +96,7 @@ public void viewFacultyByDept(Scanner in) {
 		ArrayList<Student> students = new ArrayList<Student>();
 		students = PowerSchool.getStudents();
 		for (int i = 0; i < students.size(); i++) {
-			System.out.println(students.get(i).getLastName() + ", " + students.get(i).getFirstName() + " / " + students.get(i).getGraduation());
+			System.out.println(students.get(i).getLastName() + ", " + students.get(i).getFirstName() + " / " + students.get(i).getGraduationYear());
 		}
 	}
 	
