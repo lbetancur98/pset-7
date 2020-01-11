@@ -77,4 +77,9 @@ public class QueryUtils {
     public static String GET_STUDENTS = 
     	    "SELECT last_name, first_name, graduation, student_id, class_rank, grade_level, gpa, users.user_id, account_type, username, auth, last_login " +
     	        "FROM students INNER JOIN users ON users.user_id = students.user_id ORDER BY last_name";
+    
+    public static String GET_DEPARTMENTS = 
+            "SELECT '[' || department_id || '] ' || title || '.' \"Phrase\" FROM departments ORDER BY department_id;";
+            
+
 }
