@@ -557,6 +557,54 @@ public class Teacher extends User {
 	        }
 	        return studentsInCourse;
 	    }
+	    
+	    private int getStudentInCourseSelection(Scanner in, ArrayList<Student> studentsInCourse) {
+	        System.out.print("\n");
+	        for (int i = 0; i < studentsInCourse.size(); i++) {
+	            System.out.printf("[%d] %s, %s\n", i + 1, studentsInCourse.get(i).getLastName(), studentsInCourse.get(i).getFirstName());
+	        }
+	        System.out.println("\nChoose a student: ");
+	        System.out.print("\n::: ");
+
+	        int studentSelection = 0;
+	        while (studentSelection > studentsInCourse.size() || studentSelection < 1) {
+	            try {
+	                studentSelection = in.nextInt();
+	            } catch (InputMismatchException e) {
+	                System.out.println("\nYour input was invalid. Please try again.");
+	                System.out.println("Choose a student: ");
+	                
+	                for (int i = 0; i < studentsInCourse.size(); i++) {
+	                    System.out.printf("[%d] %s, %s\n", i + 1, studentsInCourse.get(i).getLastName(), studentsInCourse.get(i).getFirstName());
+	                }
+	            } finally {
+	                in.nextLine();
+	            }
+	        }
+
+	        return studentSelection;
+	    }  
+	    
+	    private int getCurrentGradeOfStudentInCourse(ArrayList<Student> studentsInCourse, int studentSelection, ArrayList<Assignment> assignments, int assignmentSelection, int course_id) {
+            int output = -1;
+            try (Connection conn = PowerSchool.getConnection()) {
+                PreparedStatement stmt = conn.prepareStatement("SELECT * FROM assignment_grades WHERE student_id = ? AND course_id = ? AND assignment_id = ?");
+                stmt.setInt(1, studentsInCourse.get(studentSelection - 1).getStudentId());
+                stmt.setInt(2, course_id);
+                stmt.setInt(3, assignments.get(assignmentSelection - 1).getAssignmentId());
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        output = rs.getInt("points_earned");
+                    }else {
+                        output = -1;
+                    }
+                }
+            } catch (SQLException e) {
+                PowerSchool.shutdown(true);
+            }
+        return output;
+    }
+
 
 
 }
