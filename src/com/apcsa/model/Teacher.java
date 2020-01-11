@@ -360,6 +360,100 @@ public class Teacher extends User {
 
 	    }
 	 
+	 
+	 private void enterGradeHelper(Scanner in, int mp, String title) {
+	        //get course id from title
+	        int course_id = this.getCourseIdFromTitle(title);
+
+	        //makes ArrayList of assignments.
+	        ArrayList<Assignment> assignments = new ArrayList<Assignment>();
+	        String statement = !(mp > 4) ? "SELECT * FROM assignments WHERE course_id = ? AND marking_period = ?" 
+	        : (mp == 5) ? "SELECT * FROM assignments WHERE course_id = ? AND is_midterm = 1" : "SELECT * FROM assignments WHERE course_id = ? AND is_final = 1";
+
+
+
+	        assignments = this.getAssignmentList(statement, course_id, mp);
+
+	        //this gets the specific assignment that the user wants
+	        if (assignments.size() != 0) {
+	            //placeholder if the student has no grade in the class
+	            String noGrade = "--";
+	            int assignmentSelection = this.getAssignmentSelection(in, assignments);
+
+	            //gets the students in the course
+	            ArrayList<Student> studentsInCourse = this.getStudentsInCourse(course_id);
+
+	            if (studentsInCourse.size() == 0) {
+	                System.out.println("\nThere are no students to grade, try selecting another course.");
+	                return;
+	            }
+	            
+	            int studentSelection = this.getStudentInCourseSelection(in, studentsInCourse);
+	            
+	            int currentGrade = this.getCurrentGradeOfStudentInCourse(studentsInCourse, studentSelection, assignments, assignmentSelection, course_id);
+	            
+	            System.out.printf("\nAssignment: %s (%d pts)\n", assignments.get(assignmentSelection - 1).getTitle(), assignments.get(assignmentSelection - 1).getPointValue());
+	            System.out.printf("Student: %s, %s\n", studentsInCourse.get(studentSelection - 1).getLastName(), studentsInCourse.get(studentSelection - 1).getFirstName());
+	            System.out.printf("Current Grade: %s\n", (currentGrade == -1) ? noGrade : Integer.toString(currentGrade));
+
+	            System.out.print("\nNew Grade: ");
+	            
+	            int newGrade = -1;
+	            while (newGrade < 0 || newGrade > assignments.get(assignmentSelection - 1).getPointValue()) {
+	                try {
+	                    newGrade = in.nextInt();
+	                } catch (InputMismatchException e) {
+	                    System.out.println("\nYour input was invalid. Please try again.");
+	                    System.out.print("\nNew Grade: ");
+	                }finally {
+	                    in.nextLine();
+	                }
+	                if (newGrade < 0 || newGrade > assignments.get(assignmentSelection - 1).getPointValue()) {
+	                    System.out.printf("Must be between 0 and %d. Try again: ", assignments.get(assignmentSelection - 1).getPointValue());
+	                }
+	            }
+
+	            boolean intent = Utils.confirm(in, "\nAre you sure you want to enter this grade? (y/n) ");
+
+	            if (intent) {
+	                //If a grade already exists, that means that an update statement should be used instead of an insert into statement as there is already a instance.
+	                //Otherwise, just insert a new assignment_grades instance.
+	                if (currentGrade == -1) {
+	                    try (Connection conn = PowerSchool.getConnection()) {
+	                        PreparedStatement stmt = conn.prepareStatement("INSERT INTO assignment_grades (course_id, assignment_id, student_id, points_earned, points_possible, is_graded) VALUES (?, ?, ?, ?, ?, ?)");
+	                        stmt.setInt(1, course_id);
+	                        stmt.setInt(2, assignments.get(assignmentSelection - 1).getAssignmentId());
+	                        stmt.setInt(3, studentsInCourse.get(studentSelection - 1).getStudentId());
+	                        stmt.setInt(4, newGrade);
+	                        stmt.setInt(5, assignments.get(assignmentSelection - 1).getPointValue());
+	                        stmt.setInt(6, 1);
+	                        stmt.executeUpdate();
+	                    } catch (SQLException e) {
+	                        PowerSchool.shutdown(true);
+	                    }
+	                }else if (currentGrade != -1) {
+	                    try (Connection conn = PowerSchool.getConnection()) {
+	                        PreparedStatement stmt = conn.prepareStatement("UPDATE assignment_grades SET points_earned = ? WHERE student_id = ? AND course_id = ? AND assignment_id = ?");
+	                        stmt.setInt(1, newGrade);
+	                        stmt.setInt(2, studentsInCourse.get(studentSelection - 1).getStudentId());
+	                        stmt.setInt(3, course_id);
+	                        stmt.setInt(4, assignments.get(assignmentSelection - 1).getAssignmentId());
+	                        stmt.executeUpdate();
+	                    } catch (SQLException e) {
+	                        PowerSchool.shutdown(true);
+	                    }
+	                }
+
+	                //update student's mp grade
+	                studentsInCourse.get(studentSelection - 1).updateMPGrade(course_id, mp);
+	            }else {
+	                return;
+	            }
+	        } else {
+	            System.out.println("\nNo assignments to show.");
+	        }
+	 
 
 	 
+	 }	 
 }
