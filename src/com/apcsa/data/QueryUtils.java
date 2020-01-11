@@ -85,4 +85,8 @@ public class QueryUtils {
     	    "SELECT last_name || ', ' || first_name || ' / ' || departments.title \"Phrase\" FROM teachers " +
     	        "INNER JOIN departments ON teachers.department_id=departments.department_id WHERE departments.department_id = ? ORDER BY last_name";
 
+    public static String GET_STUDENT_ENROLLMENT_BY_COURSE_NO = 
+    	    "SELECT DISTINCT grade, course_no, course_grades.student_id \"STUDENT_ID\", course_grades.course_id, first_name, last_name, graduation, students.gpa FROM courses " +
+    	        "INNER JOIN course_grades ON courses.course_id = course_grades.course_id " + 
+    	        "INNER JOIN students ON students.student_id = course_grades.student_id WHERE course_no = ?";
 }
