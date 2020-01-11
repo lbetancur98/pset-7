@@ -605,6 +605,43 @@ public class Teacher extends User {
         return output;
     }
 
+	    private boolean checkIfMidtermOrFinalExists(String selection, int course_id) {
+	        if (selection.equals("midterm")) {
+	            try (Connection conn = PowerSchool.getConnection()) {
+	                PreparedStatement stmt = conn.prepareStatement("SELECT * FROM assignments WHERE is_midterm = 1 AND course_id = ?");
+	                stmt.setInt(1, course_id);
+	                try (ResultSet rs = stmt.executeQuery()) {
+	                    if (rs.next()) {
+	                        return true;
+	                    }else {
+	                        return false;
+	                    }
+	                }catch (SQLException e) {
+	                    PowerSchool.shutdown(true);
+	                }
+	            }catch (SQLException e) {
+	                PowerSchool.shutdown(true);
+	            }
+	        }else if (selection.equals("final")) {
+	            try (Connection conn = PowerSchool.getConnection()) {
+	                PreparedStatement stmt = conn.prepareStatement("SELECT * FROM assignments WHERE is_final = 1 AND course_id = ?");
+	                stmt.setInt(1, course_id);
+	                try (ResultSet rs = stmt.executeQuery()) {
+	                    if (rs.next()) {
+	                        return true;
+	                    }else {
+	                        return false;
+	                    }
+	                }catch (SQLException e) {
+	                    PowerSchool.shutdown(true);
+	                }
+	            }catch (SQLException e) {
+	                PowerSchool.shutdown(true);
+	            }
+	        }
+
+	        return false;
+	    }
 
 
 }
