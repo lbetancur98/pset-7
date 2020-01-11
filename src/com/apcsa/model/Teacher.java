@@ -510,5 +510,53 @@ public class Teacher extends User {
 
 	        return assignments;
 	    }
+	    
+	    private int getAssignmentSelection(Scanner in, ArrayList<Assignment> assignments) {
+	        int assignmentSelection = -1;
+	        System.out.println("\nChoose an assignment. ");
+	            
+	            for (int i = 0; i < assignments.size(); i++) {
+	                System.out.printf("[%d] %s (%d pts)\n", i + 1, assignments.get(i).getTitle(), assignments.get(i).getPointValue());
+	            }
+	            System.out.print("\n::: ");
+
+
+	            while (assignmentSelection > assignments.size() || assignmentSelection < 0) {
+	                try {
+	                    assignmentSelection = in.nextInt();
+	                } catch (InputMismatchException e) {
+	                    System.out.println("\nYour input was invalid. Please try again.");
+	                    System.out.println("\nChoose an assignment. ");
+	                    
+	                    for (int i = 0; i < assignments.size(); i++) {
+	                        System.out.printf("[%d] %s (%d pts)\n", i + 1, assignments.get(i).getTitle(), assignments.get(i).getPointValue());
+	                    }
+	                    System.out.print("\n::: ");
+	                } finally {
+	                    in.nextLine();
+	                }
+	                
+	            }
+	        return assignmentSelection;
+	    }
+	    
+	    private ArrayList<Student> getStudentsInCourse(int course_id) {
+	        ArrayList<Student> studentsInCourse = new ArrayList<Student>();
+	        try (Connection conn  = PowerSchool.getConnection()) {
+	            PreparedStatement stmt = conn.prepareStatement(QueryUtils.GET_STUDENT_ENROLLMENT_BY_COURSE_ID);
+	            stmt.setInt(1, course_id);
+	            try (ResultSet rs = stmt.executeQuery()) {
+	                while (rs.next()) {
+	                    studentsInCourse.add(new Student(rs));
+	                }
+	            }
+	            
+	            
+	        } catch (SQLException e) {
+	            PowerSchool.shutdown(true);
+	        }
+	        return studentsInCourse;
+	    }
+
 
 }
