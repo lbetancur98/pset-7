@@ -8,6 +8,7 @@ import com.apcsa.data.PowerSchool;
 import com.apcsa.model.User;
 
 enum RootAction { PASSWORD, DATABASE, LOGOUT, SHUTDOWN }
+enum StudentAction {COURSE, ASSIGNMENTS, PASSWORD, LOGOUT}
 
 public class Application {
 
@@ -85,8 +86,14 @@ public class Application {
 
         if (activeUser.isRoot()) {
             showRootUI();
-        } else {
+        } else if (activeUser.isStudent()) {
+        	showStudentUI();
+        }
             // TODO - add cases for admin, teacher, student, and unknown
+        
+        
+        if (activeUser.isStudent()) {
+        	showStudentUI();
         }
     }
     
@@ -105,6 +112,19 @@ public class Application {
             }
         }
     }
+    
+    private void showStudentUI() throws SQLException {
+    	while(activeUser != null) {
+    		switch(getStudentSelection()) {
+    			case COURSE : viewCourseGrades(); break;
+    			case ASSIGNMENTS: viewAssignmentGrades(); break;
+    			case PASSWORD: resetUserPassword();
+    			case LOGOUT: logout(); break;
+    		}
+    	}
+    }
+    
+    
     
     /*
      * Retrieves a root user's menu selection.
@@ -130,6 +150,36 @@ public class Application {
             default: return null;
         }
      }
+    
+    private StudentAction getStudentSelection() {
+    	System.out.println();
+    	
+    	System.out.println("[1] View Your Courses.");
+        System.out.println("[2] View your assignments.");
+        System.out.println("[3] Change Your Password.");
+        System.out.println("[4] Logout.");
+        System.out.print("\n::: ");
+        
+        switch (Utils.getInt(in,  -1)) {
+        	case 1: return StudentAction.COURSE;
+        	case 2: return StudentAction.ASSIGNMENTS;
+        	case 3: return StudentAction.PASSWORD;
+        	case 4: return StudentAction.LOGOUT;
+        	default: return null;
+        }
+    }
+    
+    private void viewCourseGrades() {
+    	
+    }
+    
+    private void viewAssignmentGrades() {
+    	
+    }
+    
+    private void resetUserPassword() {
+    	
+    }
     
     /*
      * Shuts down the application after encountering an error.
@@ -190,9 +240,13 @@ public class Application {
     	Timestamp ts = Timestamp.valueOf("1111-11-11 11:11:11.111");
     	
     	PowerSchool.updateUserPassword(conn, targetUser, targetUser);
+    	
     	System.out.println("updated password");
+    	
     	PowerSchool.updateLastLogin(conn, targetUser, ts);
+    	
     	System.out.println("updated login time");
+    	
     	System.out.println(targetUser);
     	
     }
