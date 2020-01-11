@@ -1,5 +1,11 @@
 package com.apcsa.controller;
 
+import com.apcsa.data.*;
+import com.apcsa.model.*;
+import java.sql.*;
+import java.util.*;
+
+
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -8,7 +14,10 @@ import com.apcsa.data.PowerSchool;
 import com.apcsa.model.User;
 
 enum RootAction { PASSWORD, DATABASE, LOGOUT, SHUTDOWN }
-enum StudentAction {COURSE, ASSIGNMENTS, PASSWORD, LOGOUT}
+enum StudentAction { GRADES, GRADESBYCOURSE, PASSWORD, LOGOUT }
+enum AdminAction { FACULTY, FACULTYBYDEPT, STUDENT, STUDENTBYGRADE, STUDENTBYCOURSE, PASSWORD, LOGOUT }
+enum TeacherAction { ENROLLMENT, AASSIGNMENT, DASSIGNMENT, ENTERGRADE, PASSWORD, LOGOUT}
+
 
 public class Application {
 
@@ -19,6 +28,8 @@ public class Application {
      * Creates an instance of the Application class, which is responsible for interacting
      * with the user via the command line interface.
      */
+    
+    public static boolean running = true;
 
     public Application() {
         this.in = new Scanner(System.in);
@@ -30,18 +41,18 @@ public class Application {
         }
     }
 
-    /**
+    /**	
      * Starts the PowerSchool application.
      * @throws SQLException 
      */
-
+    
     public void startup() throws SQLException {
         System.out.println("PowerSchool -- now for students, teachers, and school administrators!");
         Connection conn = PowerSchool.getConnection();
 
         // continuously prompt for login credentials and attempt to login
 
-        while (true) {
+        while (running) {
             System.out.print("\nUsername: ");
             String username = in.next();
 
@@ -88,6 +99,11 @@ public class Application {
             showRootUI();
         } else if (activeUser.isStudent()) {
         	showStudentUI();
+        } else if (activeUser.isTeacher()) {
+        	showTeacherUI();
+        	
+        } else if (activeUser.isAdministrator()) {
+        	showAdminUI;
         }
             // TODO - add cases for admin, teacher, student, and unknown
         
@@ -116,11 +132,69 @@ public class Application {
     private void showStudentUI() throws SQLException {
     	while(activeUser != null) {
     		switch(getStudentSelection()) {
-    			case COURSE : viewCourseGrades(); break;
-    			case ASSIGNMENTS: viewAssignmentGrades(); break;
-    			case PASSWORD: resetUserPassword();
-    			case LOGOUT: logout(); break;
-    		}
+			case GRADES:
+				((Student) user).viewCourseGrades();
+				return true;
+			case GRADESBYCOURSE:
+				((Student) user).viewAssignmentGradesByCourse(in);
+				return true;
+			case PASSWORD:
+				((Student) user).changePassword(in);
+				return true;
+			case LOGOUT:
+				return false;
+		}
+    	}
+    }
+    
+    private void showAdminUI() throws SQLException {
+    	while(activeUser != null) {
+    		switch(getAdminSelection()) {
+			case FACULTY:
+				((Administrator) user).viewFaculty();
+				return true;
+			case FACULTYBYDEPT:
+				((Administrator) user).viewFacultyByDept(in);
+				return true;
+			case STUDENT: 
+				((Administrator) user).viewStudentEnrollment();
+				return true;
+			case STUDENTBYGRADE:
+				((Administrator) user).viewStudentEnrollmentByGrade(in);
+				return true;
+			case STUDENTBYCOURSE:
+				((Administrator) user).viewStudentEnrollmentByCourse(in);
+				return true;
+			case PASSWORD:
+				((Administrator) user).changePassword(in);
+				return true;
+			case LOGOUT:
+				return false;
+		}
+    	}
+    }
+    
+    private void showTeacherUI() throws SQLException {
+    	while(activeUser != null) {
+    		switch(getTeacherSelection()) {
+			case ENROLLMENT:
+				((Teacher) user).enrollment(in);
+				return true;
+			case AASSIGNMENT:
+				((Teacher) user).addAssignment(in);
+				return true;
+			case DASSIGNMENT:
+				((Teacher) user).deleteAssignment(in);
+				return true;
+			case ENTERGRADE:
+				((Teacher) user).enterGrade(in);
+				return true;
+			case PASSWORD:
+                ((Teacher) user).changePassword(in);
+                return true;
+			case LOGOUT:
+				return false;
+		}
     	}
     }
     
@@ -151,23 +225,114 @@ public class Application {
         }
      }
     
-    private StudentAction getStudentSelection() {
-    	System.out.println();
-    	
-    	System.out.println("[1] View Your Courses.");
-        System.out.println("[2] View your assignments.");
-        System.out.println("[3] Change Your Password.");
-        System.out.println("[4] Logout.");
-        System.out.print("\n::: ");
-        
-        switch (Utils.getInt(in,  -1)) {
-        	case 1: return StudentAction.COURSE;
-        	case 2: return StudentAction.ASSIGNMENTS;
-        	case 3: return StudentAction.PASSWORD;
-        	case 4: return StudentAction.LOGOUT;
-        	default: return null;
-        }
+
+    
+    public AdminAction getAdminSelection() {
+    	int output = 0;
+		do {
+			System.out.println("\n[1] View faculty.");
+			System.out.println("[2] View faculty by department.");
+			System.out.println("[3] View student enrollment.");
+			System.out.println("[4] View student enrollment by grade.");
+			System.out.println("[5] View student enrollment by course.");
+			System.out.println("[6] Change password.");
+			System.out.println("[7] Logout.");
+			System.out.print("\n::: ");
+			try {
+				output = in.nextInt();
+			} catch (InputMismatchException e) {
+				System.out.println("\nYour input was invalid. Please try again.\n");
+			}
+			in.nextLine(); // clears the buffer
+		} while (output < 1 || output > 7);
+		
+		switch(output) {
+			case 1:
+				return AdminAction.FACULTY;
+			case 2:
+				return AdminAction.FACULTYBYDEPT;
+			case 3:
+				return AdminAction.STUDENT;
+			case 4:
+				return AdminAction.STUDENTBYGRADE;
+			case 5:
+				return AdminAction.STUDENTBYCOURSE;
+			case 6:
+				return AdminAction.PASSWORD;
+			case 7:
+				return AdminAction.LOGOUT;
+			default:
+				return null;
+		}
+		
     }
+    
+    public TeacherAction getTeacherSelection() {
+		int output = -1;
+		do {
+			System.out.println("\n[1] View enrollment by course.");
+			System.out.println("[2] Add assignment.");
+			System.out.println("[3] Delete assignment.");
+			System.out.println("[4] Enter grade.");
+            System.out.println("[5] Change password.");
+			System.out.println("[6] Logout.");
+			System.out.print("\n::: ");
+			try {
+                output = in.nextInt();
+			} catch (InputMismatchException e) {
+				System.out.println("\nYour input was invalid. Please try again.\n");
+			}
+            in.nextLine();
+		} while (output > 6 || output < 1);
+
+		switch(output) {
+			case 1:
+				return TeacherAction.ENROLLMENT;
+			case 2:
+				return TeacherAction.AASSIGNMENT;
+			case 3:
+				return TeacherAction.DASSIGNMENT;
+			case 4:
+				return TeacherAction.ENTERGRADE;
+			case 5:
+				return TeacherAction.PASSWORD;
+			case 6:
+				return TeacherAction.LOGOUT;
+			default:
+				return null;
+		}
+
+	}
+    
+    public StudentAction getStudentSelection() {
+    	int output = 0;
+    	do {
+    		System.out.println("\n[1] View course grades.");
+			System.out.println("[2] View assignment grades by course.");
+			System.out.println("[3] Change password.");
+			System.out.println("[4] Logout.");
+			System.out.print("\n::: ");
+			try {
+				output = in.nextInt();
+			} catch (InputMismatchException e) {
+				System.out.println("\nYour input was invalid. Please try again.\n");
+			}
+			in.nextLine();
+    	} while (output < 1 || output > 4);
+    	
+    	switch(output) {
+    		case 1:
+    			return StudentAction.GRADES;
+    		case 2:
+    			return StudentAction.GRADESBYCOURSE;
+    		case 3:
+    			return StudentAction.PASSWORD;
+    		case 4:
+    			return StudentAction.LOGOUT;
+    		default:
+    			return null;
+    	}
+	}
     
     private void viewCourseGrades() {
     	
