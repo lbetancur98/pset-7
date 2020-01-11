@@ -19,6 +19,9 @@ import com.apcsa.model.Student;
 import com.apcsa.model.Teacher;
 import com.apcsa.model.User;
 
+import com.apcsa.controller.*;
+import com.apcsa.model.*;
+
 public class PowerSchool {
 
     private final static String PROTOCOL = "jdbc:sqlite:";
