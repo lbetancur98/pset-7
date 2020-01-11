@@ -170,8 +170,196 @@ public class Teacher extends User {
 	        enterGradeHelper(in, mp, course_nos.get(courseInput - 1));
 	     }
 
+	 public void changePassword(Scanner in) {
+			System.out.println("\nEnter current password:");
+	        String currentPassword = in.nextLine();
+	        currentPassword = Utils.getHash(currentPassword);
+	    	
+	    	if (currentPassword.equals(this.password)) {
+	    		System.out.println("\nEnter a new password:");
+	    		String password = Utils.getHash((in.nextLine()));
+	    		this.setPassword(password);
+	        	try {
+	        		Connection conn = PowerSchool.getConnection();
+	        		PowerSchool.updatePassword(conn, this.getUsername(), password);
+	        	} catch (SQLException e){
+	        		PowerSchool.shutdown(true);
+	        	}
+	    	}else {
+	    		System.out.println("\nIncorrect current password.");
+	    	}
+			
+	    }
 	 
+	 private ArrayList<String> getTeacherCourseList() {
+	        System.out.print("\n");
+	        ArrayList<String> course_nos = new ArrayList<String>();
+			
+	        int count = 1;
+	        
+	        try (Connection conn = PowerSchool.getConnection()) {
+				PreparedStatement stmt = conn.prepareStatement(QueryUtils.GET_TEACHER_COURSES);
+				stmt.setInt(1, this.getTeacherId());
+				try (ResultSet rs = stmt.executeQuery()) {
+					while (rs.next()) {
+						System.out.println("[" + count + "] " + rs.getString("course_no"));
+						count++;
+						course_nos.add(rs.getString("course_no"));
+					}
+				} catch (SQLException e) {
+					PowerSchool.shutdown(true);
+				}
+			} catch (SQLException e) {
+				PowerSchool.shutdown(true);
+	        }
+	        System.out.print("\n::: ");
+
+	        return course_nos;
+	    }
 	 
+	 private int getMarkingPeriodSelection(Scanner in) {
+	        int output = 0;
+	        do {
+	            System.out.println("\n[1] MP1 Assignment.");
+	            System.out.println("[2] MP2 Assignment.");
+	            System.out.println("[3] MP3 Assignment.");
+	            System.out.println("[4] MP4 Assignment.");
+	            System.out.println("[5] Midterm exam.");
+	            System.out.println("[6] Final exam.");
+	            System.out.print("\n::: ");
+
+	            try {
+	                output = in.nextInt();
+	            } catch (InputMismatchException e) {
+	                System.out.println("Your input was invalid. Please try again.\n");
+	            }
+	            in.nextLine();
+	        } while (output < 1 || output > 6);
+
+	        
+
+	        return output;
+	    }
 	 
+	 private void addAssignmentHelper(Scanner in, int mp, String title) throws SQLException {
+	        boolean finalExists = false;
+	        boolean midtermExists = false;
+	        int isFinal = (mp == 6) ? 1 : 0;
+	        int isMidterm = (mp == 5) ? 1 : 0;
+	        int markingPeriod = (mp > 4) ? 0 : mp;
+	        String assignmentTitle = "";
+	        int pointValue = -1;
+
+
+	        int course_id = this.getCourseIdFromTitle(title);
+
+
+	        if (mp == 5) {
+	            midtermExists = this.checkIfMidtermOrFinalExists("midterm", course_id);
+	        }else if (mp == 6) {
+	            finalExists = this.checkIfMidtermOrFinalExists("final", course_id);
+	        }
+	        
+	        if (midtermExists && mp == 5) {
+	            System.out.println("\nA midterm already exists!");
+	            return;
+	        }else if (finalExists && mp == 6) {
+	            System.out.println("\nA final already exists!");
+	            return;
+	        }
+
+	        System.out.print("\nAssignment Title: ");
+	        try {
+	            assignmentTitle = in.nextLine();
+	        } catch (InputMismatchException e) {
+	            System.out.println("Your input was invalid. Please try again.");
+	            addAssignmentHelper(in, mp, title);
+	        }
+
+	        System.out.print("\nPoint Value: ");
+	        while (pointValue > 100 || pointValue < 1) {
+	            try {
+	                pointValue = in.nextInt();
+	            } catch (InputMismatchException e){
+	                System.out.println("Incorrect input.");
+	            }
+	            in.nextLine();
+
+	            if (pointValue > 100 || pointValue < 1) {
+	                System.out.println("Point values must be between 1 and 100.");
+	            }
+	        }
+
+	        boolean intent = Utils.confirm(in, "\nAre you sure you want to create this assignment? (y/n) ");
+
+	        if (intent) {
+	            
+
+	            //next follows generating an assignment id
+	            int assignment_id = Utils.generateAssignmentId();
+
+	            try (Connection conn = PowerSchool.getConnection()) {
+	                PreparedStatement stmt = conn.prepareStatement("INSERT INTO assignments (course_id, assignment_id, marking_period, is_midterm, is_final, title, point_value) VALUES (?, ?, ?, ?, ?, ?, ?)");
+	                stmt.setInt(1, course_id);
+	                stmt.setInt(2, assignment_id);
+	                stmt.setInt(3, markingPeriod);
+	                stmt.setInt(4, isMidterm);
+	                stmt.setInt(5, isFinal);
+	                stmt.setString(6, assignmentTitle);
+	                stmt.setInt(7, pointValue);
+
+	                stmt.executeUpdate();
+	            } catch (SQLException e) {
+	                PowerSchool.shutdown(true);
+	            }
+
+	        
+	        }        
+	    }
+	 
+	 private void deleteAssignmentHelper(Scanner in, int mp, String title) {
+	        
+
+	        //get course id from title
+	        int course_id = this.getCourseIdFromTitle(title);
+
+
+	        ArrayList<Assignment> assignments = new ArrayList<Assignment>();
+
+	        String statement = !(mp > 4) ? "SELECT * FROM assignments WHERE course_id = ? AND marking_period = ?" 
+	        : (mp == 5) ? "SELECT * FROM assignments WHERE course_id = ? AND is_midterm = 1" : "SELECT * FROM assignments WHERE course_id = ? AND is_final = 1";
+
+	        assignments = this.getAssignmentList(statement, course_id, mp);
+
+	        if (assignments.size() != 0) {
+	            int assignmentSelection = this.getAssignmentSelection(in, assignments); 
+	            
+
+	            try (Connection conn = PowerSchool.getConnection()) {
+	                PreparedStatement stmt = conn.prepareStatement("DELETE FROM assignments WHERE course_id = ? AND assignment_id = ?");
+	                stmt.setInt(1, course_id);
+	                stmt.setInt(2, assignments.get(assignmentSelection - 1).getAssignmentId());
+	                stmt.executeUpdate();
+	            } catch (SQLException e) {
+	                PowerSchool.shutdown(true);
+	            }
+
+	            try (Connection conn = PowerSchool.getConnection()) {
+	                PreparedStatement stmt = conn.prepareStatement("DELETE FROM assignment_grades WHERE course_id = ? AND assignment_id = ?");
+	                stmt.setInt(1, course_id);
+	                stmt.setInt(2, assignments.get(assignmentSelection - 1).getAssignmentId());
+	                stmt.executeUpdate();
+	            } catch (SQLException e) {
+	                PowerSchool.shutdown(true);
+	            }
+
+	            System.out.printf("\nSuccessfully deleted %s.\n", assignments.get(assignmentSelection - 1).getTitle());
+	        } else {
+	            System.out.println("\nNo assignments to show.");
+	        }
+
+	    }
+	 
+
 	 
 }
