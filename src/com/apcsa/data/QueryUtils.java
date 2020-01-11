@@ -81,5 +81,8 @@ public class QueryUtils {
     public static String GET_DEPARTMENTS = 
             "SELECT '[' || department_id || '] ' || title || '.' \"Phrase\" FROM departments ORDER BY department_id;";
             
+    public static String GET_FACULTY_BY_DEPT = 
+    	    "SELECT last_name || ', ' || first_name || ' / ' || departments.title \"Phrase\" FROM teachers " +
+    	        "INNER JOIN departments ON teachers.department_id=departments.department_id WHERE departments.department_id = ? ORDER BY last_name";
 
 }
