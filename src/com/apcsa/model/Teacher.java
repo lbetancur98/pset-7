@@ -456,4 +456,59 @@ public class Teacher extends User {
 
 	 
 	 }	 
+	 
+	 private int getCourseIdFromTitle(String title) {
+	        try (Connection conn = PowerSchool.getConnection()) {
+	            PreparedStatement stmt = conn.prepareStatement("SELECT course_id FROM courses WHERE course_no = ?");
+	            stmt.setString(1, title);
+	            try (ResultSet rs = stmt.executeQuery()) {
+	                if (rs.next()) {
+	                    return rs.getInt("course_id");
+	                }
+	            } catch (SQLException e) {
+	                PowerSchool.shutdown(true);
+	            }
+	        } catch (SQLException e) {
+	            PowerSchool.shutdown(true);
+	        }
+	        return -1;
+	    }
+	 
+	    private ArrayList<Assignment> getAssignmentList(String statement, int course_id, int mp) {
+	        ArrayList<Assignment> assignments = new ArrayList<Assignment>();
+	        if (mp > 0 && mp < 5) {
+	        try (Connection conn = PowerSchool.getConnection()) {
+	            PreparedStatement stmt = conn.prepareStatement(statement);
+	            stmt.setInt(1, course_id);
+	            stmt.setInt(2, mp);
+	            try (ResultSet rs = stmt.executeQuery()) {
+	                while (rs.next()) {
+	                    assignments.add(new Assignment(rs.getString("title"), rs.getInt("assignment_id"), rs.getInt("point_value")));
+	                }
+	            }
+
+	        } catch (SQLException e) {
+	            PowerSchool.shutdown(true);
+	        }
+	            
+	        }else {
+	            //marking period is either midterm or final
+	            try (Connection conn = PowerSchool.getConnection()) {
+	                PreparedStatement stmt = conn.prepareStatement(statement);
+	                stmt.setInt(1, course_id);
+	                try (ResultSet rs = stmt.executeQuery()) {
+	                    while (rs.next()) {
+	                        assignments.add(new Assignment(rs.getString("title"), rs.getInt("assignment_id"), rs.getInt("point_value")));
+	                    }
+	                }
+	    
+	            } catch (SQLException e) {
+	                PowerSchool.shutdown(true);
+	            }
+	        }
+	        
+
+	        return assignments;
+	    }
+
 }
