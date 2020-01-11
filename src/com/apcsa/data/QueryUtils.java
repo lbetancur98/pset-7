@@ -40,6 +40,8 @@ public class QueryUtils {
                 "SET auth = ? " +
             "WHERE username = ?";
     
+    
+    
     /*
      * Retrieves an administrator associated with a user account.
      */
@@ -63,4 +65,16 @@ public class QueryUtils {
     public static final String GET_STUDENT_SQL =
         "SELECT * FROM students " +
             "WHERE user_id = ?";
+    
+    
+    public static String GET_FACULTY = 
+        "SELECT users.user_id, account_type, username, auth, last_login, teacher_id, first_name, last_name, title, teachers.department_id " + 
+            "FROM teachers " + 
+            "INNER JOIN users ON teachers.user_id=users.user_id " +
+            "INNER JOIN departments " +
+            "ON teachers.department_id=departments.department_id";
+    
+    public static String GET_STUDENTS = 
+    	    "SELECT last_name, first_name, graduation, student_id, class_rank, grade_level, gpa, users.user_id, account_type, username, auth, last_login " +
+    	        "FROM students INNER JOIN users ON users.user_id = students.user_id ORDER BY last_name";
 }
