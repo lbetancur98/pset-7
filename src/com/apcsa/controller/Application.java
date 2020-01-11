@@ -103,7 +103,7 @@ public class Application {
         	showTeacherUI();
         	
         } else if (activeUser.isAdministrator()) {
-        	showAdminUI;
+        	showAdminUI();
         }
             // TODO - add cases for admin, teacher, student, and unknown
         
@@ -129,7 +129,7 @@ public class Application {
         }
     }
     
-    private void showStudentUI() throws SQLException {
+    private boolean showStudentUI() throws SQLException {
     	while(activeUser != null) {
     		switch(getStudentSelection()) {
 			case GRADES:
