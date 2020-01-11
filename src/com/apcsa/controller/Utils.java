@@ -254,6 +254,80 @@ public class Utils {
         return round(mpAvg * mpWeight + examAvg * examWeight, 2);
     }
     
+    
+    public static void updateGPA(Student student) {
+		//I SWEAR if I have time I WILL make a course class
+		ArrayList<String> course_nos = new ArrayList<String>();
+		ArrayList<String> course_ids = new ArrayList<String>();
+		ArrayList<Double> credit_hours = new ArrayList<Double>();
+        ArrayList<Double> courseGrades = student.getCourseGrades();
+
+        if (courseGrades.contains(0)) {
+            return;
+        }
+		
+		int count = 1;
+		
+		try (Connection conn = PowerSchool.getConnection()) {
+			PreparedStatement stmt = conn.prepareStatement(QueryUtils.GET_STUDENT_COURSES);
+			stmt.setInt(1, student.getStudentId());
+			try (ResultSet rs = stmt.executeQuery()) {
+				while (rs.next()) {
+					course_nos.add(rs.getString("course_no"));
+					course_ids.add(rs.getString("course_id"));
+					credit_hours.add(rs.getDouble("credit_hours"));
+				}
+			} catch (SQLException e) {
+				System.out.println(e);
+			}
+		} catch (SQLException e) {
+			System.out.println(e);
+		}
+
+		ArrayList<Double> fourScale = new ArrayList<Double>();
+        	for(int i = 0; i < courseGrades.size(); i++) {
+        		if((Double) courseGrades.get(i) == -1.0) {
+
+        		} else if ((Double) courseGrades.get(i) >= 93 && (Double) courseGrades.get(i) <= 100) {
+        			fourScale.add(4.0);
+        		} else if ((Double) courseGrades.get(i) >= 90 && (Double) courseGrades.get(i) <= 92) {
+        			fourScale.add(3.7);
+        		} else if ((Double) courseGrades.get(i) >= 87 && (Double) courseGrades.get(i) <= 89) {
+        			fourScale.add(3.3);
+        		} else if ((Double) courseGrades.get(i) >= 83 && (Double) courseGrades.get(i) <= 86) {
+        			fourScale.add(3.0);
+        		} else if ((Double) courseGrades.get(i) >= 80 && (Double) courseGrades.get(i) <= 82) {
+        			fourScale.add(2.7);
+        		} else if ((Double) courseGrades.get(i) >= 77 && (Double) courseGrades.get(i) <= 79) {
+        			fourScale.add(2.3);
+        		} else if ((Double) courseGrades.get(i) >= 73 && (Double) courseGrades.get(i) <= 76) {
+        			fourScale.add(2.0);
+        		} else if ((Double) courseGrades.get(i) >= 70 && (Double) courseGrades.get(i) <= 72) {
+        			fourScale.add(1.7);
+        		} else if ((Double) courseGrades.get(i) >= 67 && (Double) courseGrades.get(i) <= 69) {
+        			fourScale.add(1.3);
+        		} else if ((Double) courseGrades.get(i) >= 65 && (Double) courseGrades.get(i) <= 66) {
+        			fourScale.add(1.0);
+        		} else if ((Double) courseGrades.get(i) > 65) {
+        			fourScale.add(0.0);
+        		}
+        	}
+        	int totalGradePoints = 0;
+        	int hours = 0;
+        	for(int i = 0; i < fourScale.size(); i++) {
+        		totalGradePoints += fourScale.get(i)*credit_hours.get(i);
+        		hours += credit_hours.get(i);
+        	}
+        	double gpa = (double) (totalGradePoints)/ (double) hours;
+            double roundedGpa = Math.round(gpa * 100.0) / 100.0;
+            
+            PowerSchool.updateGPA(roundedGpa, student.getStudentId());
+            
+
+            updateRanks(PowerSchool.getStudents());
+	}
+
+    
     /**
      * Rounds a number to a set number of decimal places.
      * 
