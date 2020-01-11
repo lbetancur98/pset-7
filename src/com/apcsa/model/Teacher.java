@@ -107,5 +107,71 @@ public class Teacher extends User {
         
         
      }
+ 
+ 	
+ 
+	 public void addAssignment(Scanner in) {
+	
+	     int courseInput = 0;
+	     ArrayList<String> course_nos = getTeacherCourseList();
+	
+	     try {
+				courseInput = in.nextInt();
+			} catch (InputMismatchException e) {
+				System.out.println("Your input was invalid. Please try again.");
+			} finally {
+				in.nextLine();
+	     }
+	
+	     int mp = getMarkingPeriodSelection(in);
+	
+	     try {
+	         addAssignmentHelper(in, mp, course_nos.get(courseInput - 1));
+	     } catch (SQLException e) {
+	         PowerSchool.shutdown(true);
+	     }
+	
+	  }
+ 
+ 
+	 public void deleteAssignment(Scanner in) {
 
+	        int courseInput = 0;
+	        ArrayList<String> course_nos = getTeacherCourseList();
+
+	        try {
+				courseInput = in.nextInt();
+			} catch (InputMismatchException e) {
+				System.out.println("\nYour input was invalid. Please try again.");
+			} finally {
+				in.nextLine();
+	        }
+
+	        int mp = getMarkingPeriodSelection(in);
+
+	        deleteAssignmentHelper(in, mp, course_nos.get(courseInput - 1));
+	     }
+	 
+	 
+	 public void enterGrade(Scanner in) {
+	        int courseInput = 0;
+	        ArrayList<String> course_nos = getTeacherCourseList();
+
+	        try {
+				courseInput = in.nextInt();
+			} catch (InputMismatchException e) {
+				System.out.println("\nYour input was invalid. Please try again.");
+			} finally {
+				in.nextLine();
+	        }
+
+	        int mp = getMarkingPeriodSelection(in);
+
+	        enterGradeHelper(in, mp, course_nos.get(courseInput - 1));
+	     }
+
+	 
+	 
+	 
+	 
 }
