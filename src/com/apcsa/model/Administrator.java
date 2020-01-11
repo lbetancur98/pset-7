@@ -135,6 +135,53 @@ public void viewFacultyByDept(Scanner in) {
 
 		
 	}
+	
+	public void viewStudentEnrollmentByCourse(Scanner in) {
+		System.out.print("\nCourse No.: ");
+		String selection = "";
+
+		try {
+			selection = in.nextLine();
+		} catch (InputMismatchException e) {
+			PowerSchool.shutdown(true);
+		}
+
+
+		try (Connection conn = PowerSchool.getConnection()) {
+			PreparedStatement stmt = conn.prepareStatement(QueryUtils.GET_STUDENT_ENROLLMENT_BY_COURSE_NO);
+			stmt.setString(1, selection);
+			try (ResultSet rs = stmt.executeQuery()) {
+				while (rs.next()) {
+					System.out.println(rs.getString("last_name") + ", " + rs.getString("first_name") + " / " + rs.getDouble("gpa"));
+				}
+			}
+		} catch (SQLException e) {
+			PowerSchool.shutdown(true);
+		}
+		
+	}
+	
+	public void changePassword(Scanner in) {
+		System.out.println("\nEnter current password:");
+		String currentPassword = in.nextLine();
+		currentPassword = Utils.getHash(currentPassword);
+
+    	if (currentPassword.equals(this.getPassword())) {
+    		System.out.println("\nEnter a new password:");
+    		String password = Utils.getHash((in.nextLine()));
+    		this.setPassword(password);
+        	try {
+        		Connection conn = PowerSchool.getConnection();
+        		PowerSchool.updatePassword(conn, this.getUsername(), password);
+        	} catch (SQLException e){
+        		PowerSchool.shutdown(true);
+        	}
+    	}else {
+    		System.out.println("\nIncorrect current password.");
+    	}
+		
+	}
+
 
     
     public int getAdministratorId() {
