@@ -10,7 +10,7 @@ public class User {
     private int userId;
     private String accountType;
     private String username;
-    private String password;
+    protected String password;
     private String lastLogin;
 
     /**

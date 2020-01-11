@@ -1,6 +1,7 @@
 package com.apcsa.data;
 
 import java.io.BufferedReader;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -12,6 +13,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Date;
 import com.apcsa.controller.Utils;
 import com.apcsa.model.Administrator;
@@ -250,6 +252,26 @@ public class PowerSchool {
         }
     }
     
+    public static int updatePassword(Connection conn, String username, String hashedPassword) {
+    	try (PreparedStatement stmt = conn.prepareStatement(QueryUtils.UPDATE_PASSWORD)) {
+        	stmt.setString(1, hashedPassword);
+        	stmt.setString(2, username);
+        	conn.setAutoCommit(false);
+        	if (stmt.executeUpdate() == 1) {
+        		conn.commit();
+        		
+        		return 1;
+        	}else {
+        		conn.rollback();
+        		
+        		return -1;
+        	}
+        } catch (SQLException e) {
+			shutdown(true);
+			return -1;
+		}
+    }
+    
     /*
      * Updates the password for the user.
      *
@@ -325,7 +347,8 @@ public class PowerSchool {
         return !resultSet.first();
     }
     
-    private static void resetTimestamp(String username) {
+    @SuppressWarnings("unused")
+	private static void resetTimestamp(String username) {
         
         try (Connection conn = PowerSchool.getConnection()) {
             PreparedStatement stmt = conn.prepareStatement("UPDATE users SET last_login = '1111-11-11 11:11:11.111' WHERE username = ?");
